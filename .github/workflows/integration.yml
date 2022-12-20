@@ -66,6 +66,6 @@ jobs:
     needs: [Test, Quality, Security]
     uses: cristovamsilva/gha-workflows/.github/workflows/reusable-sonar.yml@v1
     secrets: inherit
-    with:
-      # cov-report: ${{ needs.Test.outputs.coverage_report_path }}
-      # exec-report: ${{ needs.Test.outputs.execution_report_path }}
+    # with:
+    # cov-report: ${{ needs.Test.outputs.coverage_report_path }}
+    # exec-report: ${{ needs.Test.outputs.execution_report_path }}
