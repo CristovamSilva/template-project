@@ -49,7 +49,7 @@ jobs:
       #       ${{ secrets.KEY_2 }}
 
       - name: Setup Cache & Dependencies
-        uses: cristovamsilva/python-dependencies-action@main
+        uses: cristovamsilva/python-dependencies-action@master
         with:
           deps-directory: ${{ needs.Config.outputs.deps-directory }}
           app: true
