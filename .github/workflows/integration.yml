@@ -66,7 +66,7 @@ jobs:
       module-directory: ${{ needs.Config.outputs.module-directory }}
 
   Security:
-    needs: [Config]
+    needs: [Config, Build]
     uses: cristovamsilva/gha-workflows/.github/workflows/reusable-security.yml@main
     with:
       deps-directory: ${{ needs.Config.outputs.deps-directory }}
@@ -74,7 +74,7 @@ jobs:
       module-directory: ${{ needs.Config.outputs.module-directory }}
 
   Quality:
-    needs: [Config]
+    needs: [Config, Build]
     uses: cristovamsilva/gha-workflows/.github/workflows/reusable-qa.yml@main
     with:
       deps-directory: ${{ needs.Config.outputs.deps-directory }}
