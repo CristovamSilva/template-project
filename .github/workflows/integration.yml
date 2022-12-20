@@ -42,14 +42,14 @@ jobs:
           app-directory: ${{ needs.Config.outputs.app-directory }}
 
   Quality:
-    needs: [Config, Build]
+    needs: [Config]
     uses: cristovamsilva/gha-workflows/.github/workflows/reusable-qa.yml@main
     with:
       app-directory: ${{ needs.Config.outputs.app-directory }}
       module-directory: ${{ needs.Config.outputs.module-directory }}
 
   Security:
-    needs: [Config, Build]
+    needs: [Config]
     uses: cristovamsilva/gha-workflows/.github/workflows/reusable-security.yml@main
     with:
       app-directory: ${{ needs.Config.outputs.app-directory }}
