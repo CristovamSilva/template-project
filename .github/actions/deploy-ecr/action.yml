@@ -3,13 +3,13 @@ name: "Build and Upload Image to ECR"
 description: "Login to AWS, Build and Deploy Image to ECR"
 
 inputs:
-  iam_role:
+  iam-role:
     description: IAM role arn to assume.
     required: true
     type: string
 
   session-name:
-    description: "Optional Session Name".
+    description: Optional Session Name.
     required: false
     default: "GithubActions"
     type: string
@@ -35,17 +35,13 @@ inputs:
     required: true
     type: string
 
-
 runs:
   using: "composite"
   steps:
-    # - name: Checkout Repository
-    #   uses: actions/checkout@v3
-
     - name: Configure AWS Credentials
       uses: aws-actions/configure-aws-credentials@v1-node16
       with:
-        role-to-assume: ${{ inputs.iam_role }}
+        role-to-assume: ${{ inputs.iam-role }}
         role-session-name: ${{ inputs.session-name }}
         aws-region: ${{ inputs.aws-region }}
 
@@ -80,5 +76,3 @@ runs:
           default=${{ env.SSH_AUTH_SOCK }}
         tags: ${{ steps.login-ecr.outputs.registry }}/${{ inputs.image-tag }}
         push: True
-
-

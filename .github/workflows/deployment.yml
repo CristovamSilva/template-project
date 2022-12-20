@@ -60,13 +60,14 @@ jobs:
       #     ssh-private-key: |
       #       ${{ secrets.GHA_WF_KEY }}
       #       ${{ secrets.DOCKER_DEMO_KEY }}
+
       - name: Checkout Repository
         uses: actions/checkout@v3
 
       - name: Update image on ECR
         uses: ./.github/actions/deploy-ecr
         with:
-          iam_role: ${{ secrets.IAM_ROLE }}
+          iam-role: ${{ secrets.IAM_ROLE }}
           context: ${{ needs.Config.outputs.context }}
           dockerfile: ${{ needs.Config.outputs.context }}/Dockerfile
           image-tag: ${{ needs.Config.outputs.tag }}
