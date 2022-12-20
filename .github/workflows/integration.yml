@@ -10,18 +10,30 @@ jobs:
   Config:
     runs-on: ubuntu-latest
     env:
-      APP: .
+      DEPS: .
+      SRC: ./src
+      TESTS: ./tests
       MODULE: .
     outputs:
-      app-directory: ${{ steps.app-dir.outputs.dir }}
-      module-directory: ${{ steps.module-dir.outputs.dir }}
+      deps-directory: ${{ steps.deps.outputs.dir }}
+      source-directory: ${{ steps.source.outputs.dir }}
+      tests-directory: ${{ steps.tests.outputs.dir }}
+      module-directory: ${{ steps.module.outputs.dir }}
     steps:
       - name: Set Dependencies Directory
-        id: app-dir
-        run: echo dir=$APP >> $GITHUB_OUTPUT
+        id: deps
+        run: echo dir=$DEPS >> $GITHUB_OUTPUT
+
+      - name: Set Source Directory
+        id: source
+        run: echo dir=$SRC >> $GITHUB_OUTPUT
+
+      - name: Set Tests Directory
+        id: tests
+        run: echo dir=$TESTS >> $GITHUB_OUTPUT
 
       - name: Set DUT Directory
-        id: module-dir
+        id: module
         run: echo dir=$MODULE >> $GITHUB_OUTPUT
 
   Build:
@@ -39,30 +51,31 @@ jobs:
       - name: Setup Cache & Dependencies
         uses: cristovamsilva/python-dependencies-action@v1
         with:
-          app-directory: ${{ needs.Config.outputs.app-directory }}
+          app-directory: ${{ needs.Config.outputs.deps-directory }}
 
   Quality:
     needs: [Config]
     uses: cristovamsilva/gha-workflows/.github/workflows/reusable-qa.yml@main
     with:
-      app-directory: ${{ needs.Config.outputs.app-directory }}
+      source-directory: ${{ needs.Config.outputs.source-directory }}
       module-directory: ${{ needs.Config.outputs.module-directory }}
 
   Security:
     needs: [Config]
     uses: cristovamsilva/gha-workflows/.github/workflows/reusable-security.yml@main
     with:
-      app-directory: ${{ needs.Config.outputs.app-directory }}
+      source-directory: ${{ needs.Config.outputs.source-directory }}
       module-directory: ${{ needs.Config.outputs.module-directory }}
 
   Test:
     needs: [Config, Build]
     uses: cristovamsilva/gha-workflows/.github/workflows/reusable-test.yml@main
     with:
-      app-directory: ${{ needs.Config.outputs.app-directory }}
+      deps-directory: ${{ needs.Config.outputs.deps-directory }}
+      source-directory: ${{ needs.Config.outputs.source-directory }}
       module-directory: ./tests/${{ needs.Config.outputs.module-directory }}
 
   SonarCloud:
-    needs: [Config, Test, Quality, Security]
+    needs: [Test, Quality, Security]
     uses: cristovamsilva/gha-workflows/.github/workflows/reusable-sonar.yml@main
     secrets: inherit

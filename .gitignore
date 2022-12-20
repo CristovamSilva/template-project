@@ -1,5 +1,6 @@
 qa.sh
 requirements-actions.txt
+reports/
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[cod]
