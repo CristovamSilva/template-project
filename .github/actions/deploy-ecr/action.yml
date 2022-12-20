@@ -54,6 +54,7 @@ runs:
       id: buildx
 
     - name: Create Git & SSH Config Dir
+      continue-on-error: true
       env:
         CONFIG_DIR: "config"
       id: config-dir
