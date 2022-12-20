@@ -66,5 +66,3 @@ jobs:
     needs: [Config, Test, Quality, Security]
     uses: cristovamsilva/gha-workflows/.github/workflows/reusable-sonar.yml@main
     secrets: inherit
-    with:
-      source-directory: ${{ needs.Config.outputs.app-directory }}
