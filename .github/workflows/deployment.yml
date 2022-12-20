@@ -69,7 +69,7 @@ jobs:
         with:
           iam-role: ${{ secrets.IAM_ROLE }}
           context: ${{ needs.Config.outputs.context }}
-          dockerfile: ${{ needs.Config.outputs.tag }}/Dockerfile
+          dockerfile: ${{ needs.Config.outputs.context }}/Dockerfile
           image-tag: ${{ needs.Config.outputs.tag }}
 
       - name: Download Task Definition
