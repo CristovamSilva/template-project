@@ -43,28 +43,28 @@ jobs:
 
   Quality:
     needs: [Config, Build]
-    uses: cristovamsilva/gha-workflows/.github/workflows/reusable-qa.yml@v1
+    uses: cristovamsilva/gha-workflows/.github/workflows/reusable-qa.yml@main
     with:
       app-directory: ${{ needs.Config.outputs.app-directory }}
       module-directory: ${{ needs.Config.outputs.module-directory }}
 
   Security:
     needs: [Config, Build]
-    uses: cristovamsilva/gha-workflows/.github/workflows/reusable-security.yml@v1
+    uses: cristovamsilva/gha-workflows/.github/workflows/reusable-security.yml@main
     with:
       app-directory: ${{ needs.Config.outputs.app-directory }}
       module-directory: ${{ needs.Config.outputs.module-directory }}
 
   Test:
     needs: [Config, Build]
-    uses: cristovamsilva/gha-workflows/.github/workflows/reusable-test.yml@v1
+    uses: cristovamsilva/gha-workflows/.github/workflows/reusable-test.yml@main
     with:
       app-directory: ${{ needs.Config.outputs.app-directory }}
       module-directory: ${{ needs.Config.outputs.module-directory }}
 
   SonarCloud:
-    needs: [Test, Quality, Security]
-    uses: cristovamsilva/gha-workflows/.github/workflows/reusable-sonar.yml@v1
+    needs: [Config, Test, Quality, Security]
+    uses: cristovamsilva/gha-workflows/.github/workflows/reusable-sonar.yml@main
     secrets: inherit
     with:
       source-directory: ${{ needs.Config.outputs.app-directory }}
