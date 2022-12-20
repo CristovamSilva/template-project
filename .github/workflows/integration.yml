@@ -72,8 +72,8 @@ jobs:
     uses: cristovamsilva/gha-workflows/.github/workflows/reusable-test.yml@main
     with:
       deps-directory: ${{ needs.Config.outputs.deps-directory }}
-      source-directory: ${{ needs.Config.outputs.source-directory }}
-      module-directory: ./tests/${{ needs.Config.outputs.module-directory }}
+      source-directory: ${{ needs.Config.outputs.tests-directory }}
+      module-directory: ${{ needs.Config.outputs.module-directory }}
 
   SonarCloud:
     needs: [Test, Quality, Security]
