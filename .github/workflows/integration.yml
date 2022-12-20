@@ -61,6 +61,7 @@ jobs:
     needs: [Config]
     uses: cristovamsilva/gha-workflows/.github/workflows/reusable-qa.yml@main
     with:
+      deps-directory: ${{ needs.Config.outputs.deps-directory }}
       source-directory: ${{ needs.Config.outputs.source-directory }}
       module-directory: ${{ needs.Config.outputs.module-directory }}
 
@@ -68,6 +69,7 @@ jobs:
     needs: [Config]
     uses: cristovamsilva/gha-workflows/.github/workflows/reusable-security.yml@main
     with:
+      deps-directory: ${{ needs.Config.outputs.deps-directory }}
       source-directory: ${{ needs.Config.outputs.source-directory }}
       module-directory: ${{ needs.Config.outputs.module-directory }}
 
@@ -75,6 +77,7 @@ jobs:
     needs: [Config, Build]
     uses: cristovamsilva/gha-workflows/.github/workflows/reusable-test.yml@main
     with:
+      deps-directory: ${{ needs.Config.outputs.deps-directory }}
       deps-directory: ${{ needs.Config.outputs.deps-directory }}
       source-directory: ${{ needs.Config.outputs.tests-directory }}
       module-directory: ${{ needs.Config.outputs.module-directory }}
