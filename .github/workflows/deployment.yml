@@ -2,7 +2,7 @@ name: Deployment Workflow
 
 on:
   push:
-    branches: [$default-branch]
+    branches: [main]
 
 jobs:
   Config:
@@ -94,10 +94,10 @@ jobs:
       #     container-name: container2
       #     image: ${{ steps.login-ecr.outputs.registry }}/${{ needs.Config.outputs.tag }}2
 
-      - name: Deploy Task Definition
-        uses: aws-actions/amazon-ecs-deploy-task-definition@v1
-        with:
-          task-definition: ${{ steps.container1.outputs.task-definition }}
-          service: ${{ needs.Config.outputs.service }}
-          cluster: ${{ needs.Config.outputs.cluster }}
-          wait-for-service-stability: false
+      # - name: Deploy Task Definition
+      #   uses: aws-actions/amazon-ecs-deploy-task-definition@v1
+      #   with:
+      #     task-definition: ${{ steps.container1.outputs.task-definition }}
+      #     service: ${{ needs.Config.outputs.service }}
+      #     cluster: ${{ needs.Config.outputs.cluster }}
+      #     wait-for-service-stability: false
