@@ -1,0 +1,39 @@
+name: "AWS Login"
+
+description: "Login to AWS and ECR"
+
+inputs:
+  iam-role:
+    description: IAM role arn to assume.
+    required: true
+    type: string
+
+  session-name:
+    description: Optional Session Name.
+    required: false
+    default: "GithubActions"
+    type: string
+
+  aws-region:
+    description: AWS Region.
+    required: false
+    default: "us-east-1"
+    type: string
+
+runs:
+  using: "composite"
+  steps:
+    - name: Configure AWS Credentials
+      uses: aws-actions/configure-aws-credentials@v1-node16
+      with:
+        role-to-assume: ${{ inputs.iam-role }}
+        role-session-name: ${{ inputs.session-name }}
+        aws-region: ${{ inputs.aws-region }}
+
+    - name: Login to Amazon ECR
+      id: login-ecr
+      uses: aws-actions/amazon-ecr-login@v1
+
+    - name: Set up Docker Buildx
+      uses: docker/setup-Buildx-action@v2
+      id: buildx
