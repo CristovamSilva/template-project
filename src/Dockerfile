@@ -33,6 +33,6 @@ FROM python:3.10-slim
 COPY --from=base /opt/venv /opt/venv
 ENV PATH="/opt/venv/bin:$PATH"
 
-COPY ./API/app app
+COPY ./src/API/app app
 
 CMD [ "python", "-m", "app" ]
