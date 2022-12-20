@@ -9,7 +9,7 @@ inputs:
     type: string
 
   session-name:
-    description: "[Optional] Session Name".
+    description: "Optional Session Name".
     required: false
     default: "GithubActions"
     type: string
