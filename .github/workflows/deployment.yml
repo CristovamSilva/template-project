@@ -68,7 +68,7 @@ jobs:
         uses: ./.github/actions/deploy-ecr
         with:
           iam-role: ${{ secrets.IAM_ROLE }}
-          context: ${{ needs.Config.outputs.cpntext }}
+          context: ${{ needs.Config.outputs.context }}
           dockerfile: ${{ needs.Config.outputs.tag }}/Dockerfile
           image-tag: ${{ needs.Config.outputs.tag }}
 

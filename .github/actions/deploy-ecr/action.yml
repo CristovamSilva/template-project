@@ -1,6 +1,6 @@
-name: "Cache Dependencies"
+name: "Build and Upload Image to ECR"
 
-description: "Setup Python with pip Cache and Install Dependencies"
+description: "Login to AWS, Build and Deploy Image to ECR"
 
 inputs:
   iam-role:
