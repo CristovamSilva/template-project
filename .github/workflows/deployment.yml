@@ -54,20 +54,19 @@ jobs:
       id-token: write
       contents: read
     steps:
-      - name: Checkout Repository
-        uses: actions/checkout@v3
-
       # - name: Setup Deploy Keys
       #   uses: webfactory/ssh-agent@v0.7.0
       #   with:
       #     ssh-private-key: |
       #       ${{ secrets.GHA_WF_KEY }}
       #       ${{ secrets.DOCKER_DEMO_KEY }}
+      - name: Checkout Repository
+        uses: actions/checkout@v3
 
       - name: Update image on ECR
         uses: ./.github/actions/deploy-ecr
         with:
-          iam-role: ${{ secrets.IAM_ROLE }}
+          iam_role: ${{ secrets.IAM_ROLE }}
           context: ${{ needs.Config.outputs.context }}
           dockerfile: ${{ needs.Config.outputs.context }}/Dockerfile
           image-tag: ${{ needs.Config.outputs.tag }}
