@@ -6,7 +6,7 @@ class MemoryDB:
         self.db = dict()
 
     def create(self, object):
-        oid = str(uuoid4())
+        oid = str(uuid4())
         self.db[oid] = object
         print(self.db)
         return {"id": oid}

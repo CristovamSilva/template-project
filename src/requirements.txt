@@ -1,4 +1,0 @@
-./Databases/MemoryDB
-./Databases/MongoDB
-./Business
-./API

@@ -4,13 +4,13 @@ on:
   workflow_dispatch:
   pull_request:
     types: [opened, synchronize, reopened]
-    branches: [$default-branch]
+    branches: [main]
 
 jobs:
   Config:
     runs-on: ubuntu-latest
     env:
-      APP: ./src
+      APP: .
       MODULE: .
     outputs:
       app-directory: ${{ steps.app-dir.outputs.dir }}
@@ -60,7 +60,7 @@ jobs:
     uses: cristovamsilva/gha-workflows/.github/workflows/reusable-test.yml@main
     with:
       app-directory: ${{ needs.Config.outputs.app-directory }}
-      module-directory: ${{ needs.Config.outputs.module-directory }}
+      module-directory: ./tests/${{ needs.Config.outputs.module-directory }}
 
   SonarCloud:
     needs: [Config, Test, Quality, Security]
