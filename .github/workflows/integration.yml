@@ -1,0 +1,70 @@
+name: Integration Workflow
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened]
+    branches: [$default-branch]
+
+jobs:
+  Config:
+    runs-on: ubuntu-latest
+    env:
+      APP: ./src
+      MODULE: .
+    outputs:
+      app-directory: ${{ steps.app-dir.outputs.dir }}
+      module-directory: ${{ steps.module-dir.outputs.dir }}
+    steps:
+      - name: Set Dependencies Directory
+        id: app-dir
+        run: echo dir=$APP >> $GITHUB_OUTPUT
+
+      - name: Set DUT Directory
+        id: module-dir
+        run: echo dir=$MODULE >> $GITHUB_OUTPUT
+
+  Build:
+    needs: [Config]
+    runs-on: ubuntu-latest
+
+    steps:
+      # - name: Setup Deploy Keys
+      #   uses: webfactory/ssh-agent@v0.7.0
+      #   with:
+      #     ssh-private-key: |
+      #       ${{ secrets.KEY_1 }}
+      #       ${{ secrets.KEY_2 }}
+
+      - name: Setup Cache & Dependencies
+        uses: cristovamsilva/python-dependencies-action@v1
+        with:
+          app-directory: ${{ needs.Config.outputs.app-directory }}
+
+  Quality:
+    needs: [Config, Build]
+    uses: cristovamsilva/gha-workflows/.github/workflows/reusable-qa.yml
+    with:
+      app-directory: ${{ needs.Config.outputs.app-directory }}
+      module-directory: ${{ needs.Config.outputs.module-directory }}
+
+  Security:
+    needs: [Config, Build]
+    uses: cristovamsilva/gha-workflows/.github/workflows/reusable-security.yml
+    with:
+      app-directory: ${{ needs.Config.outputs.app-directory }}
+      module-directory: ${{ needs.Config.outputs.module-directory }}
+
+  Test:
+    needs: [Config, Build]
+    uses: cristovamsilva/gha-workflows/.github/workflows/reusable-test.yml
+    with:
+      app-directory: ${{ needs.Config.outputs.app-directory }}
+      module-directory: ${{ needs.Config.outputs.module-directory }}
+
+  SonarCloud:
+    needs: [Test, Quality, Security]
+    uses: cristovamsilva/gha-workflows/.github/workflows/reusable-sonar.yml
+    secrets: inherit
+    with:
+      cov-report: ${{ needs.Test.outputs.coverage_report_path }}
+      exec-report: ${{ needs.Test.outputs.execution_report_path }}

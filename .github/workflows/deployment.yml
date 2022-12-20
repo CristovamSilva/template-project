@@ -1,0 +1,125 @@
+name: Deployment Workflow
+
+on:
+  push:
+    branches: [$default-branch]
+
+jobs:
+  Config:
+    runs-on: ubuntu-latest
+    env:
+      ROLE_ARN: arn:aws:iam::306094223949:role/gha-template-role
+      CONTEXT: ./src
+      ECR_REPOSITORY: gha-test-repo
+      IMAGE_TAG: ${{ github.sha }}
+      CONTAINER: template
+      TASK_DEFINITION: template-task
+      SERVICE: template-service
+      CLUSTER: default
+    outputs:
+      app-context: ${{ steps.context.outputs.context }}
+      tag: ${{ steps.image-tag.outputs.tag }}
+      container: ${{ steps.container.outputs.container }}
+      task-definition: ${{ steps.task-def.outputs.task-def }}
+      service: ${{ steps.service.outputs.service }}
+      cluster: ${{ steps.cluster.outputs.cluster }}
+    steps:
+      - name: Set Context Directory
+        id: context
+        run: echo context=$CONTEXT >> $GITHUB_OUTPUT
+
+      - name: Set Image Tag
+        id: image-tag
+        run: echo tag=$ECR_REPOSITORY:$IMAGE_TAG >> $GITHUB_OUTPUT
+
+      - name: Set Task Definition Family
+        id: task-def
+        run: echo task-def=$TASK_DEFINITION >> $GITHUB_OUTPUT
+
+      - name: Set Contaienr
+        id: container
+        run: echo container=$CONTAINER >> $GITHUB_OUTPUT
+
+      - name: Set Service
+        id: service
+        run: echo service=$SERVICE >> $GITHUB_OUTPUT
+
+      - name: Set Cluster
+        id: cluster
+        run: echo cluster=$CLUSTER >> $GITHUB_OUTPUT
+
+  Deploy:
+    needs: [Config]
+    runs-on: ubuntu-latest
+    permissions:
+      id-token: write
+      contents: read
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v3
+
+      - name: Configure AWS Credentials
+        uses: aws-actions/configure-aws-credentials@v1-node16
+        with:
+          role-to-assume: ${{ secrets.IAM_ROLE }}
+          role-session-name: templatesession
+          aws-region: us-east-1
+
+      - name: Login to Amazon ECR
+        id: login-ecr
+        uses: aws-actions/amazon-ecr-login@v1
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-Buildx-action@v2
+        id: buildx
+
+      - name: Setup Deploy Keys
+        uses: webfactory/ssh-agent@v0.7.0
+        with:
+          ssh-private-key: |
+            ${{ secrets.GHA_WF_KEY }}
+            ${{ secrets.DOCKER_DEMO_KEY }}
+
+      - name: Create Git & SSH Config Dir
+        env:
+          CONFIG_DIR: "config"
+        id: config-dir
+        run: |
+          mkdir ${CONFIG_DIR}
+          cp -r ~/.gitconfig  ~/.ssh ${CONFIG_DIR}/
+          echo dir=${CONFIG_DIR} >> GITHUB_OUTPUT
+        working-directory: ${{ needs.Config.outputs.app-context }}
+
+      - name: Build & Push Image
+        id: build-image
+        uses: docker/build-push-action@v3
+        with:
+          builder: ${{ steps.buildx.outputs.name }}
+          context: ${{ needs.Config.outputs.app-context }}
+          file: ${{ needs.Config.outputs.app-context }}/Dockerfile
+          build-args: |
+            CONFIG_DIR: ${{ steps.config-dir.outputs.dir }}
+          ssh: |
+            default=${{ env.SSH_AUTH_SOCK }}
+          tags: ${{ steps.login-ecr.outputs.registry }}/${{ needs.Config.outputs.tag }}
+          push: True
+
+      - name: Download Task Definition
+        run: |
+          aws ecs describe-task-definition --task-definition ${{ needs.Config.outputs.task-definition }} --query taskDefinition > task-definition.json
+
+      - name: Update Task Definition
+        id: task-def
+        uses: aws-actions/amazon-ecs-render-task-definition@v1
+        with:
+          task-definition: task-definition.json
+          container-name: ${{ needs.Config.outputs.container }}
+          image: ${{ steps.login-ecr.outputs.registry }}/${{ needs.Config.outputs.tag }}
+
+      - name: Deploy Task Definition
+        uses: aws-actions/amazon-ecs-deploy-task-definition@v1
+        with:
+          task-definition: ${{ steps.task-def.outputs.task-definition }}
+          service: ${{ needs.Config.outputs.service }}
+          cluster: ${{ needs.Config.outputs.cluster }}
+          wait-for-service-stability: false
