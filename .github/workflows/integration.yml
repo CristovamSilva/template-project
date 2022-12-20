@@ -57,12 +57,12 @@ jobs:
           sec: true
           test: true
 
-  Quality:
-    needs: [Config]
-    uses: cristovamsilva/gha-workflows/.github/workflows/reusable-qa.yml@main
+  Test:
+    needs: [Config, Build]
+    uses: cristovamsilva/gha-workflows/.github/workflows/reusable-test.yml@main
     with:
       deps-directory: ${{ needs.Config.outputs.deps-directory }}
-      source-directory: ${{ needs.Config.outputs.source-directory }}
+      source-directory: ${{ needs.Config.outputs.tests-directory }}
       module-directory: ${{ needs.Config.outputs.module-directory }}
 
   Security:
@@ -73,12 +73,12 @@ jobs:
       source-directory: ${{ needs.Config.outputs.source-directory }}
       module-directory: ${{ needs.Config.outputs.module-directory }}
 
-  Test:
-    needs: [Config, Build]
-    uses: cristovamsilva/gha-workflows/.github/workflows/reusable-test.yml@main
+  Quality:
+    needs: [Config]
+    uses: cristovamsilva/gha-workflows/.github/workflows/reusable-qa.yml@main
     with:
       deps-directory: ${{ needs.Config.outputs.deps-directory }}
-      source-directory: ${{ needs.Config.outputs.tests-directory }}
+      source-directory: ${{ needs.Config.outputs.source-directory }}
       module-directory: ${{ needs.Config.outputs.module-directory }}
 
   SonarCloud:
