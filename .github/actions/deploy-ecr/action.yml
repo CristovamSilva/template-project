@@ -62,6 +62,7 @@ runs:
         cp -r ~/.gitconfig  ~/.ssh ${CONFIG_DIR}/
         echo dir=${CONFIG_DIR} >> GITHUB_OUTPUT
       working-directory: ${{ inputs.context }}
+      shell: bash
 
     - name: Build & Push Image
       id: build-image
