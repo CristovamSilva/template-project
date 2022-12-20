@@ -73,9 +73,9 @@ jobs:
           image-tag: ${{ needs.Config.outputs.tag }}
 
       - name: Download Task Definition
-        run: >
+        run: |
           aws ecs describe-task-definition \
-          --task-definition ${{ needs.Config.outputs..task-definition }} \
+          --task-definition ${{ needs.Config.outputs.task-definition }} \
           --query taskDefinition > task-definition.json
 
       - name: Update Task Definition
