@@ -42,29 +42,29 @@ jobs:
 
   Quality:
     needs: [Config, Build]
-    uses: cristovamsilva/gha-workflows/.github/workflows/reusable-qa.yml
+    uses: cristovamsilva/gha-workflows/.github/workflows/reusable-qa.yml@master@master
     with:
       app-directory: ${{ needs.Config.outputs.app-directory }}
       module-directory: ${{ needs.Config.outputs.module-directory }}
 
   Security:
     needs: [Config, Build]
-    uses: cristovamsilva/gha-workflows/.github/workflows/reusable-security.yml
+    uses: cristovamsilva/gha-workflows/.github/workflows/reusable-security.yml@master
     with:
       app-directory: ${{ needs.Config.outputs.app-directory }}
       module-directory: ${{ needs.Config.outputs.module-directory }}
 
   Test:
     needs: [Config, Build]
-    uses: cristovamsilva/gha-workflows/.github/workflows/reusable-test.yml
+    uses: cristovamsilva/gha-workflows/.github/workflows/reusable-test.yml@master
     with:
       app-directory: ${{ needs.Config.outputs.app-directory }}
       module-directory: ${{ needs.Config.outputs.module-directory }}
 
   SonarCloud:
     needs: [Test, Quality, Security]
-    uses: cristovamsilva/gha-workflows/.github/workflows/reusable-sonar.yml
+    uses: cristovamsilva/gha-workflows/.github/workflows/reusable-sonar.yml@master
     secrets: inherit
     with:
-      cov-report: ${{ needs.Test.outputs.coverage_report_path }}
-      exec-report: ${{ needs.Test.outputs.execution_report_path }}
+      # cov-report: ${{ needs.Test.outputs.coverage_report_path }}
+      # exec-report: ${{ needs.Test.outputs.execution_report_path }}
