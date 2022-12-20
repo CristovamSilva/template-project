@@ -8,7 +8,6 @@ jobs:
   Config:
     runs-on: ubuntu-latest
     env:
-      ROLE_ARN: arn:aws:iam::306094223949:role/gha-template-role
       CONTEXT: ./src
       ECR_REPOSITORY: gha-test-repo
       IMAGE_TAG: ${{ github.sha }}
@@ -17,7 +16,7 @@ jobs:
       SERVICE: template-service
       CLUSTER: default
     outputs:
-      app-context: ${{ steps.context.outputs.context }}
+      context: ${{ steps.context.outputs.context }}
       tag: ${{ steps.image-tag.outputs.tag }}
       container: ${{ steps.container.outputs.container }}
       task-definition: ${{ steps.task-def.outputs.task-def }}
@@ -58,68 +57,47 @@ jobs:
       - name: Checkout Repository
         uses: actions/checkout@v3
 
-      - name: Configure AWS Credentials
-        uses: aws-actions/configure-aws-credentials@v1-node16
+      # - name: Setup Deploy Keys
+      #   uses: webfactory/ssh-agent@v0.7.0
+      #   with:
+      #     ssh-private-key: |
+      #       ${{ secrets.GHA_WF_KEY }}
+      #       ${{ secrets.DOCKER_DEMO_KEY }}
+
+      - name: Update image on ECR
+        uses: ./.github/actions/deploy-ecr
         with:
-          role-to-assume: ${{ secrets.IAM_ROLE }}
-          role-session-name: templatesession
-          aws-region: us-east-1
-
-      - name: Login to Amazon ECR
-        id: login-ecr
-        uses: aws-actions/amazon-ecr-login@v1
-
-      - name: Set up Docker Buildx
-        uses: docker/setup-Buildx-action@v2
-        id: buildx
-
-      - name: Setup Deploy Keys
-        uses: webfactory/ssh-agent@v0.7.0
-        with:
-          ssh-private-key: |
-            ${{ secrets.GHA_WF_KEY }}
-            ${{ secrets.DOCKER_DEMO_KEY }}
-
-      - name: Create Git & SSH Config Dir
-        env:
-          CONFIG_DIR: "config"
-        id: config-dir
-        run: |
-          mkdir ${CONFIG_DIR}
-          cp -r ~/.gitconfig  ~/.ssh ${CONFIG_DIR}/
-          echo dir=${CONFIG_DIR} >> GITHUB_OUTPUT
-        working-directory: ${{ needs.Config.outputs.app-context }}
-
-      - name: Build & Push Image
-        id: build-image
-        uses: docker/build-push-action@v3
-        with:
-          builder: ${{ steps.buildx.outputs.name }}
-          context: ${{ needs.Config.outputs.app-context }}
-          file: ${{ needs.Config.outputs.app-context }}/Dockerfile
-          build-args: |
-            CONFIG_DIR: ${{ steps.config-dir.outputs.dir }}
-          ssh: |
-            default=${{ env.SSH_AUTH_SOCK }}
-          tags: ${{ steps.login-ecr.outputs.registry }}/${{ needs.Config.outputs.tag }}
-          push: True
+          iam-role: ${{ secrets.IAM_ROLE }}
+          context: ${{ needs.Config.outputs.cpntext }}
+          dockerfile: ${{ needs.Config.outputs.tag }}/Dockerfile
+          image-tag: ${{ needs.Config.outputs.tag }}
 
       - name: Download Task Definition
         run: |
-          aws ecs describe-task-definition --task-definition ${{ needs.Config.outputs.task-definition }} --query taskDefinition > task-definition.json
+          aws ecs describe-task-definition \
+          --task-definition ${{ needs.Config.outputs..task-definition }} \
+          --query taskDefinition > task-definition.json
 
       - name: Update Task Definition
-        id: task-def
+        id: container1
         uses: aws-actions/amazon-ecs-render-task-definition@v1
         with:
           task-definition: task-definition.json
           container-name: ${{ needs.Config.outputs.container }}
           image: ${{ steps.login-ecr.outputs.registry }}/${{ needs.Config.outputs.tag }}
 
+      # - name: Update Second Container
+      #   id: container2
+      #   uses: aws-actions/amazon-ecs-render-task-definition@v1
+      #   with:
+      #     task-definition: ${{ steps.container1.outputs.task-definition }}
+      #     container-name: container2
+      #     image: ${{ steps.login-ecr.outputs.registry }}/${{ needs.Config.outputs.tag }}2
+
       - name: Deploy Task Definition
         uses: aws-actions/amazon-ecs-deploy-task-definition@v1
         with:
-          task-definition: ${{ steps.task-def.outputs.task-definition }}
+          task-definition: ${{ steps.container1.outputs.task-definition }}
           service: ${{ needs.Config.outputs.service }}
           cluster: ${{ needs.Config.outputs.cluster }}
           wait-for-service-stability: false
