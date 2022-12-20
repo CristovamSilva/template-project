@@ -54,13 +54,6 @@ jobs:
       id-token: write
       contents: read
     steps:
-      # - name: Setup Deploy Keys
-      #   uses: webfactory/ssh-agent@v0.7.0
-      #   with:
-      #     ssh-private-key: |
-      #       ${{ secrets.GHA_WF_KEY }}
-      #       ${{ secrets.DOCKER_DEMO_KEY }}
-
       - name: Checkout Repository
         uses: actions/checkout@v3
 
@@ -85,14 +78,6 @@ jobs:
           task-definition: task-definition.json
           container-name: ${{ needs.Config.outputs.container }}
           image: ${{ steps.login-ecr.outputs.registry }}/${{ needs.Config.outputs.tag }}
-
-      # - name: Update Second Container
-      #   id: container2
-      #   uses: aws-actions/amazon-ecs-render-task-definition@v1
-      #   with:
-      #     task-definition: ${{ steps.container1.outputs.task-definition }}
-      #     container-name: container2
-      #     image: ${{ steps.login-ecr.outputs.registry }}/${{ needs.Config.outputs.tag }}2
 
       # - name: Deploy Task Definition
       #   uses: aws-actions/amazon-ecs-deploy-task-definition@v1

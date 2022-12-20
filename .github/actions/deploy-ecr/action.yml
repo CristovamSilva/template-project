@@ -53,18 +53,6 @@ runs:
       uses: docker/setup-Buildx-action@v2
       id: buildx
 
-    - name: Create Git & SSH Config Dir
-      continue-on-error: true
-      env:
-        CONFIG_DIR: "config"
-      id: config-dir
-      run: |
-        mkdir ${CONFIG_DIR}
-        cp -r ~/.gitconfig  ~/.ssh ${CONFIG_DIR}/
-        echo dir=${CONFIG_DIR} >> GITHUB_OUTPUT
-      working-directory: ${{ inputs.context }}
-      shell: bash
-
     - name: Build & Push Image
       id: build-image
       uses: docker/build-push-action@v3
@@ -72,9 +60,5 @@ runs:
         builder: ${{ steps.buildx.outputs.name }}
         context: ${{ inputs.context }}
         file: ${{ inputs.dockerfile }}
-        build-args: |
-          CONFIG_DIR: ${{ steps.config-dir.outputs.dir }}
-        ssh: |
-          default=${{ env.SSH_AUTH_SOCK }}
         tags: ${{ steps.login-ecr.outputs.registry }}/${{ inputs.image-tag }}
-        push: True
+        push: false
