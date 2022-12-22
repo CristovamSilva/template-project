@@ -1,4 +1,3 @@
-
 class MongoDB:
     @staticmethod
     def create(cls, collection, object):

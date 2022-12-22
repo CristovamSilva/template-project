@@ -80,9 +80,8 @@ jobs:
       deps-directory: ${{ needs.Config.outputs.deps-directory }}
       source-directory: ${{ needs.Config.outputs.source-directory }}
       module-directory: ${{ needs.Config.outputs.module-directory }}
-      # pylint: false
 
-  SonarCloud:
-    needs: [Test, Quality, Security]
-    uses: cristovamsilva/gha-workflows/.github/workflows/reusable-sonar.yml@main
-    secrets: inherit
+  # SonarCloud:
+  #   needs: [Test, Quality, Security]
+  #   uses: cristovamsilva/gha-workflows/.github/workflows/reusable-sonar.yml@main
+  #   secrets: inherit
