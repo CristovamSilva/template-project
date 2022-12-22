@@ -10,8 +10,8 @@ jobs:
   Config:
     runs-on: ubuntu-latest
     env:
-      DEPS: .
-      SRC: src
+      DEPENDENCIES: requirements
+      SOURCE: src
       TESTS: tests
       MODULE: .
     outputs:
@@ -22,11 +22,11 @@ jobs:
     steps:
       - name: Set Dependencies Directory
         id: deps
-        run: echo dir=$DEPS >> $GITHUB_OUTPUT
+        run: echo dir=$DEPENDENCIES >> $GITHUB_OUTPUT
 
       - name: Set Source Directory
         id: source
-        run: echo dir=$SRC >> $GITHUB_OUTPUT
+        run: echo dir=$SOURCE >> $GITHUB_OUTPUT
 
       - name: Set Tests Directory
         id: tests
@@ -52,9 +52,9 @@ jobs:
         uses: cristovamsilva/python-dependencies-action@master
         with:
           deps-directory: ${{ needs.Config.outputs.deps-directory }}
-          app: true
-          qa: true
-          sec: true
+          application: true
+          quality: true
+          security: true
           test: true
 
   Test:
