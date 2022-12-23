@@ -81,6 +81,7 @@ jobs:
       source-directory: ${{ needs.Config.outputs.source-directory }}
       module-directory: ${{ needs.Config.outputs.module-directory }}
       mypy: false
+      pylint: false
 
   SonarCloud:
     needs: [Test, Quality, Security]
