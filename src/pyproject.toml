@@ -1,13 +1,12 @@
+[tool.pylint.format]
+max-line-length = "88"
+
 [tool.bandit]
 exclude_dirs = ["tests"]
 tests = ["B201", "B301"]
-skips = ["B101", "B601"][tool.pylint.main]
+skips = ["B101", "B601"]
 
 [tool.isort]
 line-length = 88
 skip = [".gitginore", ".dockerignore"]
-profile = black
-
-[tool.pylint.format]
-max-line-length = "88"
-
+profile = "black"
