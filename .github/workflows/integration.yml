@@ -82,7 +82,7 @@ jobs:
       module-directory: ${{ needs.Config.outputs.module-directory }}
       mypy: false
 
-  # SonarCloud:
-  #   needs: [Test, Quality, Security]
-  #   uses: cristovamsilva/gha-workflows/.github/workflows/reusable-sonar.yml@main
-  #   secrets: inherit
+  SonarCloud:
+    needs: [Test, Quality, Security]
+    uses: cristovamsilva/gha-workflows/.github/workflows/reusable-sonar.yml@main
+    secrets: inherit
