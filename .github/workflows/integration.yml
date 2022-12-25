@@ -59,11 +59,14 @@ jobs:
 
   Test:
     needs: [Config, Build]
-    uses: cristovamsilva/gha-workflows/.github/workflows/reusable-test.yml@main
-    with:
-      deps-directory: ${{ needs.Config.outputs.deps-directory }}
-      source-directory: ${{ needs.Config.outputs.tests-directory }}
-      module-directory: ${{ needs.Config.outputs.module-directory }}
+    runs-on: ubuntu-latest
+    steps:
+      - name: Test with Pytest
+        uses: cristovamsilva/pytest-action@main
+        with:
+          deps-directory: ${{ needs.Config.outputs.deps-directory }}
+          source-directory: ${{ needs.Config.outputs.tests-directory }}
+          module-directory: ${{ needs.Config.outputs.module-directory }}
 
   Security:
     needs: [Config, Build]
