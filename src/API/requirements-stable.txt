@@ -1,1 +1,2 @@
 memorydb @ git+ssh://git@github.com/CristovamSilva/template-project.git@main#subdirectory=src/Databases/MemoryDB
+engine @ git+ssh://git@github.com/CristovamSilva/template-project.git@main#subdirectory=src/Business
