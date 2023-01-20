@@ -1,51 +1,33 @@
 name: Deployment Workflow
 
 on:
+  workflow_dispatch:
   push:
     branches: [main]
+    paths:
+      - "src/**"
 
 jobs:
   Config:
     runs-on: ubuntu-latest
     env:
-      CONTEXT: .
-      ECR_REPOSITORY: gha-test-repo
-      IMAGE_TAG: ${{ github.sha }}
-      CONTAINER: recruit
-      TASK_DEFINITION: recruit
-      SERVICE: recruit-service
-      CLUSTER: default
+      CONTEXT: src
+      ECR_REPOSITORY: template
+      CONTAINER: template
+      TASK_DEFINITION: template
+      SERVICE: template
+      CLUSTER: template
     outputs:
-      context: ${{ steps.context.outputs.context }}
+      context: ${{ env.CONTEXT }}
       tag: ${{ steps.image-tag.outputs.tag }}
-      container: ${{ steps.container.outputs.container }}
-      task-definition: ${{ steps.task-def.outputs.task-def }}
-      service: ${{ steps.service.outputs.service }}
-      cluster: ${{ steps.cluster.outputs.cluster }}
+      container: ${{ env.CONTAINER }}
+      task-definition: ${{ env.TASK_DEFINITION }}
+      service: ${{ env.SERVICE }}
+      cluster: ${{ env.CLUSTER }}
     steps:
-      - name: Set Context Directory
-        id: context
-        run: echo context=$CONTEXT >> $GITHUB_OUTPUT
-
       - name: Set Image Tag
         id: image-tag
-        run: echo tag=$ECR_REPOSITORY:$IMAGE_TAG >> $GITHUB_OUTPUT
-
-      - name: Set Task Definition Family
-        id: task-def
-        run: echo task-def=$TASK_DEFINITION >> $GITHUB_OUTPUT
-
-      - name: Set Contaienr
-        id: container
-        run: echo container=$CONTAINER >> $GITHUB_OUTPUT
-
-      - name: Set Service
-        id: service
-        run: echo service=$SERVICE >> $GITHUB_OUTPUT
-
-      - name: Set Cluster
-        id: cluster
-        run: echo cluster=$CLUSTER >> $GITHUB_OUTPUT
+        run: echo tag=$ECR_REPOSITORY:${{ github.sha }} >> $GITHUB_OUTPUT
 
   Deploy:
     needs: [Config]
@@ -57,18 +39,51 @@ jobs:
       - name: Checkout Repository
         uses: actions/checkout@v3
 
-      - name: Update image on ECR
-        uses: ./.github/actions/deploy-ecr
+      - name: Setup Deploy Keys
+        uses: CristovamSilva/ssh-agent-action@master
         with:
-          iam-role: ${{ secrets.IAM_ROLE }}
+          ssh-private-key: |
+            ${{ secrets.DEPLOY_KEY }}
+
+      - name: Prepare Build Context
+        run: |
+          mkdir root-config
+          cp -r ~/.gitconfig  ~/.ssh root-config/
+        working-directory: ${{ needs.Config.outputs.context }}
+
+      - name: Configure AWS Credentials
+        uses: aws-actions/configure-aws-credentials@v1-node16
+        with:
+          role-to-assume: ${{ secrets.IAM_ROLE }}
+          role-session-name: GithubActions
+          aws-region: us-east-1
+
+      - name: Login to Amazon ECR
+        id: login-ecr
+        uses: aws-actions/amazon-ecr-login@v1
+
+      - name: Set up Docker Buildx
+        id: buildx
+        uses: docker/setup-Buildx-action@v2
+
+      - name: Build & Push Image
+        id: build-image
+        uses: docker/build-push-action@v3
+        with:
+          builder: ${{ steps.buildx.outputs.name }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
           context: ${{ needs.Config.outputs.context }}
-          dockerfile: ${{ needs.Config.outputs.context }}/src/Dockerfile
-          image-tag: ${{ needs.Config.outputs.tag }}
+          ssh: |
+            default=${{ env.SSH_AUTH_SOCK }}
+          file: ${{ needs.Config.outputs.context }}/Dockerfile
+          tags: ${{ steps.login-ecr.outputs.registry }}/${{ needs.Config.outputs.tag }}
+          push: true
 
       - name: Download Task Definition
-        run: |
-          aws ecs describe-task-definition \
-          --task-definition ${{ needs.Config.outputs.task-definition }} \
+        run: >
+          aws ecs describe-task-definition 
+          --task-definition ${{ needs.Config.outputs.task-definition }} 
           --query taskDefinition > task-definition.json
 
       - name: Update Task Definition
@@ -79,10 +94,10 @@ jobs:
           container-name: ${{ needs.Config.outputs.container }}
           image: ${{ steps.login-ecr.outputs.registry }}/${{ needs.Config.outputs.tag }}
 
-      # - name: Deploy Task Definition
-      #   uses: aws-actions/amazon-ecs-deploy-task-definition@v1
-      #   with:
-      #     task-definition: ${{ steps.container1.outputs.task-definition }}
-      #     service: ${{ needs.Config.outputs.service }}
-      #     cluster: ${{ needs.Config.outputs.cluster }}
-      #     wait-for-service-stability: false
+      - name: Deploy Task Definition
+        uses: aws-actions/amazon-ecs-deploy-task-definition@v1
+        with:
+          task-definition: ${{ steps.container1.outputs.task-definition }}
+          service: ${{ needs.Config.outputs.service }}
+          cluster: ${{ needs.Config.outputs.cluster }}
+          wait-for-service-stability: false

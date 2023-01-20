@@ -13,19 +13,14 @@ jobs:
         uses: cristovamsilva/python-dependencies-action@master
         with:
           dependencies-directory: src
-          deploy-keys: ${{ secrets.DEPLOY_KEY }}
+          # deploy-keys:
 
           application: true
-          application-packages: ./Databases/MemoryDB ./Business ./API
+          # application-packages: ./Databases/MemoryDB ./Business ./API
 
           quality: true
-          # quality-packages: hypothesis
-
           security: true
-          # security-packages: pygraudit
-
           test: true
-          # test-packages: nox
 
   # Test:
   #   needs: [Build]
