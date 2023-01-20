@@ -3,7 +3,6 @@ name: Deployment Workflow
 on:
   push:
     branches: [main]
-  workflow_run: integration
 
 jobs:
   Config:

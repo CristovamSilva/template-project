@@ -19,13 +19,13 @@ jobs:
           application-packages: ./Databases/MemoryDB ./Business ./API
 
           quality: true
-          quality-packages: hypothesis
+          # quality-packages: hypothesis
 
           security: true
-          security-packages: pygraudit
+          # security-packages: pygraudit
 
           test: true
-          test-packages: nox
+          # test-packages: nox
 
   # Test:
   #   needs: [Build]
