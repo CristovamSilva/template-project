@@ -1,0 +1,15 @@
+name: Release Workflow
+
+on:
+  push:
+    tags:
+      - "v.*.*.*"
+
+jobs:
+  Verify:
+  needs: [Build]
+  uses: TeiaLabs/gha-workflows/.github/workflows/reusable-release.yml@main
+  with:
+    dependencies-directory: ${{ needs.Build.outputs.dependencies-directory }}
+    source-directory: src
+    module-directory: .

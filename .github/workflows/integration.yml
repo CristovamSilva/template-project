@@ -4,89 +4,44 @@ on:
   workflow_dispatch:
   pull_request:
     types: [opened, synchronize, reopened]
-    branches: [main]
 
 jobs:
-  Config:
-    runs-on: ubuntu-latest
-    env:
-      DEPENDENCIES: requirements
-      SOURCE: src
-      TESTS: tests
-      MODULE: .
-    outputs:
-      deps-directory: ${{ steps.deps.outputs.dir }}
-      source-directory: ${{ steps.source.outputs.dir }}
-      tests-directory: ${{ steps.tests.outputs.dir }}
-      module-directory: ${{ steps.module.outputs.dir }}
-    steps:
-      - name: Set Dependencies Directory
-        id: deps
-        run: echo dir=$DEPENDENCIES >> $GITHUB_OUTPUT
-
-      - name: Set Source Directory
-        id: source
-        run: echo dir=$SOURCE >> $GITHUB_OUTPUT
-
-      - name: Set Tests Directory
-        id: tests
-        run: echo dir=$TESTS >> $GITHUB_OUTPUT
-
-      - name: Set DUT Directory
-        id: module
-        run: echo dir=$MODULE >> $GITHUB_OUTPUT
-
   Build:
-    needs: [Config]
     runs-on: ubuntu-latest
-
     steps:
-      # - name: Setup Deploy Keys
-      #   uses: webfactory/ssh-agent@v0.7.0
-      #   with:
-      #     ssh-private-key: |
-      #       ${{ secrets.KEY_1 }}
-      #       ${{ secrets.KEY_2 }}
-
       - name: Setup Cache & Dependencies
         uses: cristovamsilva/python-dependencies-action@master
         with:
-          deps-directory: ${{ needs.Config.outputs.deps-directory }}
+          dependencies-directory: src
+          deploy-keys: ${{ secrets.DEPLOY_KEY }}
+
           application: true
+          application-packages: ./Databases/MemoryDB ./Business ./API
+
           quality: true
+          quality-packages: hypothesis
+
           security: true
+          security-packages: pygraudit
+
           test: true
+          test-packages: nox
 
-  Test:
-    needs: [Config, Build]
-    runs-on: ubuntu-latest
-    steps:
-      - name: Test with Pytest
-        uses: cristovamsilva/pytest-action@main
-        with:
-          deps-directory: ${{ needs.Config.outputs.deps-directory }}
-          source-directory: ${{ needs.Config.outputs.tests-directory }}
-          module-directory: ${{ needs.Config.outputs.module-directory }}
+  # Test:
+  #   needs: [Build]
+  #   runs-on: ubuntu-latest
+  #   steps:
+  #     - name: Test with Pytest
+  #       uses: cristovamsilva/pytest-action@main
+  #       with:
+  #         dependencies-directory: src
+  #         tests-directory: src
+  #         package-directory: .
 
-  Security:
-    needs: [Config, Build]
-    uses: cristovamsilva/gha-workflows/.github/workflows/reusable-security.yml@main
-    with:
-      deps-directory: ${{ needs.Config.outputs.deps-directory }}
-      source-directory: ${{ needs.Config.outputs.source-directory }}
-      module-directory: ${{ needs.Config.outputs.module-directory }}
-
-  Quality:
-    needs: [Config, Build]
-    uses: cristovamsilva/gha-workflows/.github/workflows/reusable-qa.yml@main
-    with:
-      deps-directory: ${{ needs.Config.outputs.deps-directory }}
-      source-directory: ${{ needs.Config.outputs.source-directory }}
-      module-directory: ${{ needs.Config.outputs.module-directory }}
-      mypy: false
-      pylint: false
-
-  SonarCloud:
-    needs: [Test, Quality, Security]
-    uses: cristovamsilva/gha-workflows/.github/workflows/reusable-sonar.yml@main
-    secrets: inherit
+  # Verify:
+  # needs: [Build]
+  # uses: TeiaLabs/gha-workflows/.github/workflows/reusable-release.yml@main
+  # with:
+  #   dependencies-directory: src
+  #   source-directory: src
+  #   package-directory: .
