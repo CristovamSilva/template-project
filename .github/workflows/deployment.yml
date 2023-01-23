@@ -53,7 +53,7 @@ jobs:
         working-directory: ${{ needs.Config.outputs.context }}
 
       - name: Setup Cache & Dependencies
-        uses: .github/actions/deploy
+        uses: ./.github/actions/deploy
         with:
           docker-context: src
           dockerfile: Dockerfile
