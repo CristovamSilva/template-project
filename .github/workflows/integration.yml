@@ -13,7 +13,7 @@ jobs:
         uses: cristovamsilva/python-dependencies-action@master
         with:
           dependencies-directory: src
-          application-obj: { "install": true, "packages": "API" }
+          application-obj: '{ "install": true, "packages": "API" }'
           application: true
           quality: true
           security: true
