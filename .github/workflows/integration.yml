@@ -17,6 +17,7 @@ jobs:
           quality: true
           security: true
           test: true
+
   Verify:
     needs: [Build]
     uses: CristovamSilva/gha-workflows/.github/workflows/reusable-integration.yml@main
