@@ -66,6 +66,7 @@ runs:
       uses: aws-actions/amazon-ecr-login@v1
 
     - name: Set Image Tag
+      shell: bash
       id: image-tag
       run: echo tag=${{ steps.login-ecr.outputs.registry }}/${{ inputs.ecr-repository}}:${{ github.sha }} >> $GITHUB_OUTPUT
 
