@@ -17,37 +17,25 @@ jobs:
           quality: true
           security: true
           test: true
-
-  # Test:
-  #   needs: [Build]
-  #   runs-on: ubuntu-latest
-  #   steps:
-  #     - name: Test with Pytest
-  #       uses: cristovamsilva/pytest-action@main
-  #       with:
-  #         dependencies-directory: src
-  #         tests-directory: src
-  #         package-directory: .
-
   Verify:
-  needs: [Build]
-  uses: CristovamSilva/gha-workflows/.github/workflows/reusable-integration.yml@main
-  with:
-    dependencies-directory: src
-    source-directory: src
-    package-directory: .
+    needs: [Build]
+    uses: CristovamSilva/gha-workflows/.github/workflows/reusable-integration.yml@main
+    with:
+      dependencies-directory: src
+      source-directory: src
+      package-directory: .
 
-    enable-security: true
-    security-bandit: true
-    security-dependencies-review: false
+      enable-security: true
+      security-bandit: true
+      security-dependencies-review: false
 
-    enable-quality: true
-    quality-sort: true
-    quality-format: true
-    quality-mypy: true
-    quality-flake8: true
-    quality-pylint: true
+      enable-quality: true
+      quality-sort: true
+      quality-format: true
+      quality-mypy: true
+      quality-flake8: true
+      quality-pylint: true
 
-    enable-sonar: false
-    # execution-report:
-    # coverage-report:
+      enable-sonar: false
+      # execution-report:
+      # coverage-report:
