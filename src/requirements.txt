@@ -1,4 +1,4 @@
-# ./Databases/MemoryDB
-# ./Databases/MongoDB
-# ./Business
-# ./API
+./Databases/MemoryDB
+./Databases/MongoDB
+./Business
+./API

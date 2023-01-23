@@ -13,11 +13,7 @@ jobs:
         uses: cristovamsilva/python-dependencies-action@master
         with:
           dependencies-directory: src
-          # deploy-keys:
-
           application: true
-          # application-packages: ./Databases/MemoryDB ./Business ./API
-
           quality: true
           security: true
           test: true
