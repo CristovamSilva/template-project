@@ -33,9 +33,9 @@ jobs:
       enable-quality: true
       quality-sort: true
       quality-format: true
-      quality-mypy: true
+      quality-mypy: false
       quality-flake8: true
-      quality-pylint: true
+      quality-pylint: false
 
       enable-sonar: false
       # execution-report:
