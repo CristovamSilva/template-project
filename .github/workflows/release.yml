@@ -7,8 +7,8 @@ on:
 
 jobs:
   Verify:
-  uses: TeiaLabs/gha-workflows/.github/workflows/reusable-release.yml@main
-  with:
-    dependencies-directory: ${{ needs.Build.outputs.dependencies-directory }}
-    source-directory: src
-    module-directory: .
+    uses: TeiaLabs/gha-workflows/.github/workflows/reusable-release.yml@main
+    with:
+      dependencies-directory: ${{ needs.Build.outputs.dependencies-directory }}
+      source-directory: src
+      module-directory: .

@@ -3,10 +3,9 @@ name: Deployment Workflow
 on:
   workflow_dispatch:
   workflow_run:
-    workflows:
-      - Integration Workflow
-    types:
-      - completed
+    workflows: [Integration Workflow]
+    types: [completed]
+    branches: [main]
   push:
     branches: [main]
     paths:
