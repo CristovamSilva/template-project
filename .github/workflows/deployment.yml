@@ -12,29 +12,8 @@ on:
       - "src/**"
 
 jobs:
-  Config:
+  Deploy:
     if: ${{ github.event.workflow_run.conclusion == 'success' }}
-    runs-on: ubuntu-latest
-    env:
-      CONTEXT: src
-      ECR_REPOSITORY: template
-      CONTAINER: template
-      TASK_DEFINITION: template
-      SERVICE: template
-      CLUSTER: template
-    outputs:
-      context: ${{ env.CONTEXT }}
-      tag: ${{ steps.image-tag.outputs.tag }}
-      container: ${{ env.CONTAINER }}
-      task-definition: ${{ env.TASK_DEFINITION }}
-      service: ${{ env.SERVICE }}
-      cluster: ${{ env.CLUSTER }}
-    steps:
-      - name: Set Image Tag
-        id: image-tag
-        run: echo tag=$ECR_REPOSITORY:${{ github.sha }} >> $GITHUB_OUTPUT
-
-  Build:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout Repository
@@ -65,76 +44,3 @@ jobs:
           ecs-service: template-service
           aws-iam-role: ${{ secrets.IAM_ROLE }}
           aws-region: us-east-1
-
-  Deploy:
-    needs: [Config]
-    runs-on: ubuntu-latest
-    permissions:
-      id-token: write
-      contents: read
-    steps:
-      - name: Checkout Repository
-        uses: actions/checkout@v3
-
-      - name: Setup Deploy Keys
-        uses: CristovamSilva/ssh-agent-action@master
-        with:
-          ssh-private-key: |
-            ${{ secrets.DEPLOY_KEY }}
-
-      - name: Prepare Build Context
-        run: |
-          mkdir root-config
-          cp -r ~/.gitconfig  ~/.ssh root-config/
-        working-directory: ${{ needs.Config.outputs.context }}
-
-      - name: Configure AWS Credentials
-        uses: aws-actions/configure-aws-credentials@v1-node16
-        with:
-          role-to-assume: ${{ secrets.IAM_ROLE }}
-          role-session-name: GithubActions
-          aws-region: us-east-1
-
-      - name: Login to Amazon ECR
-        id: login-ecr
-        uses: aws-actions/amazon-ecr-login@v1
-
-      - name: Set up Docker Buildx
-        id: buildx
-        uses: docker/setup-Buildx-action@v2
-
-      - name: Build & Push Image
-        id: build-image
-        uses: docker/build-push-action@v3
-        with:
-          builder: ${{ steps.buildx.outputs.name }}
-          cache-from: type=gha
-          cache-to: type=gha,mode=max
-          context: ${{ needs.Config.outputs.context }}
-          ssh: |
-            default=${{ env.SSH_AUTH_SOCK }}
-          file: ${{ needs.Config.outputs.context }}/Dockerfile
-          tags: ${{ steps.login-ecr.outputs.registry }}/${{ needs.Config.outputs.tag }}
-          push: false
-
-      # - name: Download Task Definition
-      #   run: >
-      #     aws ecs describe-task-definition
-      #     --task-definition ${{ needs.Config.outputs.task-definition }}
-      #     --query taskDefinition > task-definition.json
-
-      # - name: Update Task Definition
-      #   id: container1
-      #   uses: aws-actions/amazon-ecs-render-task-definition@v1
-      #   with:
-      #     task-definition: task-definition.json
-      #     container-name: ${{ needs.Config.outputs.container }}
-      #     image: ${{ steps.login-ecr.outputs.registry }}/${{ needs.Config.outputs.tag }}
-
-      # - name: Deploy Task Definition
-      #   uses: aws-actions/amazon-ecs-deploy-task-definition@v1
-      #   with:
-      #     task-definition: ${{ steps.container1.outputs.task-definition }}
-      #     service: ${{ needs.Config.outputs.service }}
-      #     cluster: ${{ needs.Config.outputs.cluster }}
-      #     wait-for-service-stability: false
