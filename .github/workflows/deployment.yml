@@ -34,6 +34,38 @@ jobs:
         id: image-tag
         run: echo tag=$ECR_REPOSITORY:${{ github.sha }} >> $GITHUB_OUTPUT
 
+  Build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v3
+
+      - name: Setup Deploy Keys
+        uses: CristovamSilva/ssh-agent-action@master
+        with:
+          ssh-private-key: |
+            ${{ secrets.DEPLOY_KEY }}
+
+      - name: Prepare Build Context
+        run: |
+          mkdir root-config
+          cp -r ~/.gitconfig  ~/.ssh root-config/
+        working-directory: ${{ needs.Config.outputs.context }}
+
+      - name: Setup Cache & Dependencies
+        uses: .github/actions/deploy
+        with:
+          docker-context: src
+          dockerfile: Dockerfile
+          ecr-repository: template
+          ecr-push-image: false
+          task-definition: template
+          task-container: template
+          ecs-cluster: template
+          ecs-service: template-service
+          aws-iam-role: ${{ secrets.IAM_ROLE }}
+          aws-region: us-east-1
+
   Deploy:
     needs: [Config]
     runs-on: ubuntu-latest
@@ -83,26 +115,26 @@ jobs:
             default=${{ env.SSH_AUTH_SOCK }}
           file: ${{ needs.Config.outputs.context }}/Dockerfile
           tags: ${{ steps.login-ecr.outputs.registry }}/${{ needs.Config.outputs.tag }}
-          push: true
+          push: false
 
-      - name: Download Task Definition
-        run: >
-          aws ecs describe-task-definition 
-          --task-definition ${{ needs.Config.outputs.task-definition }} 
-          --query taskDefinition > task-definition.json
+      # - name: Download Task Definition
+      #   run: >
+      #     aws ecs describe-task-definition
+      #     --task-definition ${{ needs.Config.outputs.task-definition }}
+      #     --query taskDefinition > task-definition.json
 
-      - name: Update Task Definition
-        id: container1
-        uses: aws-actions/amazon-ecs-render-task-definition@v1
-        with:
-          task-definition: task-definition.json
-          container-name: ${{ needs.Config.outputs.container }}
-          image: ${{ steps.login-ecr.outputs.registry }}/${{ needs.Config.outputs.tag }}
+      # - name: Update Task Definition
+      #   id: container1
+      #   uses: aws-actions/amazon-ecs-render-task-definition@v1
+      #   with:
+      #     task-definition: task-definition.json
+      #     container-name: ${{ needs.Config.outputs.container }}
+      #     image: ${{ steps.login-ecr.outputs.registry }}/${{ needs.Config.outputs.tag }}
 
-      - name: Deploy Task Definition
-        uses: aws-actions/amazon-ecs-deploy-task-definition@v1
-        with:
-          task-definition: ${{ steps.container1.outputs.task-definition }}
-          service: ${{ needs.Config.outputs.service }}
-          cluster: ${{ needs.Config.outputs.cluster }}
-          wait-for-service-stability: false
+      # - name: Deploy Task Definition
+      #   uses: aws-actions/amazon-ecs-deploy-task-definition@v1
+      #   with:
+      #     task-definition: ${{ steps.container1.outputs.task-definition }}
+      #     service: ${{ needs.Config.outputs.service }}
+      #     cluster: ${{ needs.Config.outputs.cluster }}
+      #     wait-for-service-stability: false

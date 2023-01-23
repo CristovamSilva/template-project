@@ -1,8 +1,6 @@
 # syntax=docker/dockerfile:1
 FROM python:3.10 as base
 
-# ARG CONFIG_DIR=config
-
 RUN --mount=type=cache,target=/var/cache/apt,sharing=locked \
     --mount=type=cache,target=/var/lib/apt,sharing=locked \
     <<eot bash
@@ -17,8 +15,8 @@ ssh-keyscan -H github.com >> /root/.ssh/known_hosts
 rm -rf /var/lib/apt/lists/*
 eot
 
-# COPY ${CONFIG_DIR} /root/
-# RUN sed 's|/home/runner|/root|g' -i.bak /root/.ssh/config
+COPY root-config? /root/
+RUN if [ -d "root-config" ]; then sed 's|/home/runner|/root|g' -i.bak /root/.ssh/config; fi
 
 RUN python -m venv /opt/venv
 ENV PATH="/opt/venv/bin:$PATH"
@@ -33,6 +31,6 @@ FROM python:3.10-slim
 COPY --from=base /opt/venv /opt/venv
 ENV PATH="/opt/venv/bin:$PATH"
 
-COPY src/API/app app
+COPY API/app app
 
 CMD [ "python", "-m", "app" ]

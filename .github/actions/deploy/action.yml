@@ -1,0 +1,110 @@
+name: "Deloy to ECS"
+
+description: "Setup Python with pip Cache and Install Dependencies"
+
+inputs:
+  docker-context:
+    description: Directory containing docker build context.
+    required: false
+    default: "."
+    type: directory
+    validation:
+      rule: directoryExists
+  dockerfile:
+    description: Name of the Dockerfile to use.
+    required: false
+    default: Dockerfile
+    type: file
+    validation:
+      rule: fileExists
+  ecr-repository:
+    description: Name of the repository in ECR.
+    required: true
+    type: string
+  ecr-push-image:
+    description: Whether to push image to the repository.
+    required: false
+    default: true
+    type: boolean
+  task-definition:
+    description: Name of the task definition to update.
+    required: true
+    type: string
+  task-container:
+    description: Name of the container inside the task definition.
+    required: true
+    type: string
+  ecs-cluster:
+    description: Name of the cluster the service to be updated is deployed.
+    required: true
+    type: string
+  ecs-service:
+    description: Name of the service to be updated with the new task definition.
+    required: true
+    type: string
+  aws-iam-role:
+    description: IAM role with permissions to update services and task definitions.
+    required: true
+    type: string
+  aws-region:
+    description: AWS region of the previously listed resources.
+    required: false
+    default: us-east-1
+    type: string
+
+runs:
+  using: "composite"
+  steps:
+    - name: Configure AWS Credentials
+      uses: aws-actions/configure-aws-credentials@v1-node16
+      with:
+        role-to-assume: ${{ inputs.aws-iam-role }}
+        aws-region: ${{ inputs.aws-region }}
+
+    - name: Login to Amazon ECR
+      id: login-ecr
+      uses: aws-actions/amazon-ecr-login@v1
+
+    - name: Set Image Tag
+      id: image-tag
+      run: echo tag=${{ steps.login-ecr.outputs.registry }}/${{ inputs.ecr-repository}}:${{ github.sha }} >> $GITHUB_OUTPUT
+
+    - name: Set up Docker Buildx
+      id: buildx
+      uses: docker/setup-Buildx-action@v2
+
+    - name: Build & Push Image
+      id: build-image
+      uses: docker/build-push-action@v3
+      with:
+        builder: ${{ steps.buildx.outputs.name }}
+        cache-from: type=gha
+        cache-to: type=gha,mode=max
+        context: ${{ inputs.docker-context }}
+        file: ${{ inputs.docker-context }}/${{ inputs.dockerfile }}
+        tags: ${{ steps.image-tag.outputs.tag }}
+        push: ${{ inputs.ecr-push-image }}
+        provenance: false
+
+    - name: Download Task Definition
+      shell: bash
+      run: >
+        aws ecs describe-task-definition 
+        --task-definition ${{ inputs.task-definition }} 
+        --query taskDefinition > task-definition.json
+
+    - name: Update Task Definition
+      id: container
+      uses: aws-actions/amazon-ecs-render-task-definition@v1
+      with:
+        task-definition: task-definition.json
+        container-name: ${{ inputs.task-container }}
+        image: ${{ steps.image-tag.outputs.tag }}
+
+    - name: Deploy Task Definition
+      uses: aws-actions/amazon-ecs-deploy-task-definition@v1
+      with:
+        task-definition: ${{ steps.container.outputs.task-definition }}
+        service: ${{ inputs.ecs-service }}
+        cluster: ${{ inputs.ecs-cluster }}
+        wait-for-service-stability: false

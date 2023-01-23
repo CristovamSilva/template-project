@@ -1,0 +1,15 @@
+[run]
+branch = true
+relative_files = true
+include = 
+    src/*
+    tests/*
+
+[report]
+skip_empty = true
+fail_under = 90
+ignore_errors = true
+include_namespace_packages = true
+
+[xml]
+output = coverage-report.xml
