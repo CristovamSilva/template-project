@@ -31,7 +31,7 @@ jobs:
 
   Verify:
   needs: [Build]
-  uses: TeiaLabs/gha-workflows/.github/workflows/reusable-integration.yml@main
+  uses: CristovamSilva/gha-workflows/.github/workflows/reusable-integration.yml@main
   with:
     dependencies-directory: src
     source-directory: src
