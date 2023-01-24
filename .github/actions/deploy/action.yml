@@ -42,6 +42,11 @@ inputs:
     description: Name of the service to be updated with the new task definition.
     required: true
     type: string
+  ecs-deploy:
+    description: Whether to deploy ecs with the updated task definition.
+    required: false
+    default: true
+    type: boolean
   aws-iam-role:
     description: IAM role with permissions to update services and task definitions.
     required: true
@@ -55,6 +60,9 @@ inputs:
 runs:
   using: "composite"
   steps:
+    - name: Checkout Repository
+      uses: actions/checkout@v3
+
     - name: Configure AWS Credentials
       uses: aws-actions/configure-aws-credentials@v1-node16
       with:
@@ -72,7 +80,7 @@ runs:
 
     - name: Set up Docker Buildx
       id: buildx
-      uses: docker/setup-Buildx-action@v2
+      uses: docker/setup-buildx-action@v2
 
     - name: Build & Push Image
       id: build-image
@@ -88,6 +96,7 @@ runs:
         provenance: false
 
     - name: Download Task Definition
+      if: inputs.ecr-push-image =='true' && inputs.ecs-deploy == 'true'
       shell: bash
       run: >
         aws ecs describe-task-definition 
@@ -95,6 +104,7 @@ runs:
         --query taskDefinition > task-definition.json
 
     - name: Update Task Definition
+      if: inputs.ecr-push-image =='true' && inputs.ecs-deploy == 'true'
       id: container
       uses: aws-actions/amazon-ecs-render-task-definition@v1
       with:
@@ -103,9 +113,9 @@ runs:
         image: ${{ steps.image-tag.outputs.tag }}
 
     - name: Deploy Task Definition
+      if: inputs.ecr-push-image =='true' && inputs.ecs-deploy == 'true'
       uses: aws-actions/amazon-ecs-deploy-task-definition@v1
       with:
         task-definition: ${{ steps.container.outputs.task-definition }}
         service: ${{ inputs.ecs-service }}
         cluster: ${{ inputs.ecs-cluster }}
-        wait-for-service-stability: false

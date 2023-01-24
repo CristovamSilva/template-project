@@ -45,5 +45,6 @@ jobs:
           task-container: template
           ecs-cluster: default
           ecs-service: template-service
+          ecs-deploy: false
           aws-iam-role: ${{ secrets.IAM_ROLE }}
           aws-region: us-east-1
