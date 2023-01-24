@@ -35,7 +35,7 @@ jobs:
         working-directory: src
 
       - name: Build and Deploy to ECS
-        uses: CristovamSilva/deploy-to-ecs-action.git@master
+        uses: CristovamSilva/deploy-to-ecs-action@master
         with:
           docker-context: src
           dockerfile: Dockerfile
