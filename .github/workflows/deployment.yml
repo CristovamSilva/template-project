@@ -31,7 +31,6 @@ jobs:
 
       - name: Build and Deploy to ECS
         uses: CristovamSilva/deploy-to-ecs-action@master
-        env:
         with:
           docker-context: src
           docker-build-ssh: |
