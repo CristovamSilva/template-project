@@ -32,10 +32,10 @@ jobs:
         run: |
           mkdir root-config
           cp -r ~/.gitconfig  ~/.ssh root-config/
-        working-directory: ${{ needs.Config.outputs.context }}
+        working-directory: src
 
       - name: Build and Deploy to ECS
-        uses: ./.github/actions/deploy
+        uses: CristovamSilva/deploy-to-ecs-action.git@master
         with:
           docker-context: src
           dockerfile: Dockerfile
@@ -48,3 +48,10 @@ jobs:
           ecs-deploy: false
           aws-iam-role: ${{ secrets.IAM_ROLE }}
           aws-region: us-east-1
+
+  Report:
+    if: github.event.workflow_run.conclusion == 'fail'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Report Failure
+        run: echo "Integration Failed"
