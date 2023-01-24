@@ -18,6 +18,23 @@ jobs:
           security: true
           test: true
 
+  Test:
+    needs: [Build]
+    runs-on: ubuntu-latest
+    outputs:
+      execution-report: pytest-exec-results
+      coverage-report: pytest-cov-results
+    steps:
+      - name: Test Package
+        uses: TeiaLabs/pytest-action@main
+        with:
+          dependencies-directory: ${{ needs.Build.outputs.dependencies-directory }}
+          tests-directory: tests
+          package-directory: test_api
+          ignore-errors: false
+          execution-report: api.xml
+          coverage-report-type: xml
+          coverage-report: api.xml
   Verify:
     needs: [Build]
     uses: CristovamSilva/gha-workflows/.github/workflows/reusable-integration.yml@main
@@ -38,5 +55,5 @@ jobs:
       quality-pylint: false
 
       enable-sonar: false
-      # execution-report:
-      # coverage-report:
+      execution-report: ${{ needs.test.outputs.execution-report }}
+      coverage-report: ${{ needs.test.outputs.coverage-report }}

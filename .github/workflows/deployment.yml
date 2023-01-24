@@ -2,10 +2,6 @@ name: Deployment Workflow
 
 on:
   workflow_dispatch:
-  workflow_run:
-    workflows: [Integration Workflow]
-    types: [completed]
-    branches: [main]
   push:
     branches: [main]
     paths:
@@ -13,7 +9,6 @@ on:
 
 jobs:
   Deploy:
-    # if: github.event.workflow_run.conclusion == 'success'
     runs-on: ubuntu-latest
     permissions:
       id-token: write
@@ -36,9 +31,11 @@ jobs:
 
       - name: Build and Deploy to ECS
         uses: CristovamSilva/deploy-to-ecs-action@master
+        env:
         with:
           docker-context: src
-          # dockerfile: Dockerfile
+          docker-build-ssh: |
+            default=${{ env.SSH_AUTH_SOCK }}
           ecr-repository: gha-test-repo
           ecr-push-image: true
           task-definition: template-task
@@ -48,10 +45,3 @@ jobs:
           ecs-deploy: false
           aws-iam-role: ${{ secrets.IAM_ROLE }}
           aws-region: us-east-1
-
-  Report:
-    if: github.event.workflow_run.conclusion == 'fail'
-    runs-on: ubuntu-latest
-    steps:
-      - name: Report Failure
-        run: echo "Integration Failed"
